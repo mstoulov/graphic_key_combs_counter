@@ -1,0 +1,29 @@
+__int128 Count(int n, int m) {
+    vector<uint32_t> moves(n * m, 0);
+    for (int i1 = 0; i1 < n; ++i1)
+        for (int j1 = 0; j1 < m; ++j1)
+            for (int i2 = 0; i2 < n; ++i2)
+                for (int j2 = 0; j2 < m; ++j2) {
+                    if (!(i1 == i2 && abs(j1 - j2) != 1 ||
+                            j1 == j2 && abs(i1 - i2) != 1 ||
+                            gcd(abs(i1 - i2), abs(j1 - j2)) != 1))
+                        moves[i1 * n + j1] |= 1u << i2 * n + j2;
+                }
+    __int128 res = 0;
+    vector<vector<__int128>> dp(1u << n * m, vector<__int128>(n * m, 0));
+    for (int i = 0; i < n * m; ++i) dp[1u << i][i] = 1;
+    for (uint32_t mt = 0; mt < 1u << n * m; ++mt) {
+        uint32_t bt_tmp = mt;
+        for (int last = __builtin_ctz(bt_tmp); bt_tmp; last = __builtin_ctz(bt_tmp)) {
+            res += dp[mt][last];
+            uint32_t bt = moves[last] & ~mt;
+            for (int i = __builtin_ctz(bt); bt; i = __builtin_ctz(bt)) {
+                dp[mt | 1u << i][i] += dp[mt][last];
+                bt &= bt - 1;
+            }
+            bt_tmp &= bt_tmp - 1;
+        }
+    }
+    res = (res - n * m) / 2 + n * m;
+    return res;
+}
